@@ -1,6 +1,6 @@
 library(ggplot2)
 library(gridExtra)
-setwd("C:/Users/fang035/OneDrive - Wageningen University & Research/Bureaublad/publication/1 se rule/cleaned R file/prediction error estimation")
+setwd("")
 K<- c(3,5,10,20)
 n<-c(100,1000) #n is the sample size
 rho<- c(0.01,0.1,0.5,0.9) #correlation between
