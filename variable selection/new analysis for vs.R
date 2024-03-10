@@ -1,9 +1,8 @@
 library(ggplot2)
 library(gridExtra)
 library(matrixStats)
-setwd("C:/Users/joeyt/Desktop/research_project/simulation results analysis")
-setwd("C:/Users/joeyt/Desktop/research_project/simulation for last phase")
-setwd("C:/Users/fang035/OneDrive - Wageningen University & Research/Bureaublad/publication/1 se rule/cleaned R file/variable selection/vs_F1")
+#unzip vs_F1.zip and load data from it
+setwd(".../vs_F1")
 load(file = "scenarios_vs_ind.RData")
 load(file = "scenarios_vs_dep.RData")
 load(file = "F1_dec_cor_min.RData")
