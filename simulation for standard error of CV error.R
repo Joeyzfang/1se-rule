@@ -23,6 +23,10 @@ beta.value<- 1.0 #constant beta value
 q.sd<- c(10,100,200) #number of non-zero coefficients
 qp.sd<- c(0.1,0.5,10/11) #the ratio between the number of non-zero coefficients to total number of coefficients
 
+##generate scenarios for independent variables
+scenarios_sd<- expand.grid(q.sd=q.sd,qp.sd=qp.sd,n=n)
+##generate scenarios for variables with correlation
+scenarios_sd2<- expand.grid(q.sd=q.sd,qp.sd=qp.sd,n=n,rho=rho)
 
 #################################################
 #constant coefficient and independent predictors
@@ -37,7 +41,6 @@ Y.1<- function(Q,Np,N,Beta){
 }#This is to generate the outcome with constant coefficients
 
 
-scenarios_sd<- expand.grid(q.sd=q.sd,zq.sd=zq.sd,n=n,beta.value=beta.value)
 
 #work session
 cv.SE.lasso<- matrix(0,ncol = nrow(scenarios_sd),nrow=4)
@@ -60,11 +63,10 @@ for(i in 1:nrow(scenarios_sd)){
 q0<- scenarios_sd[i,1]
 p0<- q0+scenarios_sd[i,2]
 n0<- scenarios_sd[i,3]
-beta0<- scenarios_sd[i,4]
 
 a<- foreach(j = 1:n_rep,.packages = 'doSNOW')%dopar%{
   x0<-X.1(p0,n0) 
-  y0<- Y.1(q0,p0,n0,beta0)
+  y0<- Y.1(q0,p0,n0,1)
   
   foreach(h = 1:4,.packages='glmnet')%do%{
     fit.lasso<- cv.glmnet(x0,y0,nfolds = K[h],family="binomial",alpha=1,parallel = TRUE)
@@ -98,7 +100,6 @@ cv.SD.ridge[,i]<- rowSds(mse.min_ridge,na.rm=TRUE)
 SEtoSD.lasso[,i]<- cv.SE.lasso[,i]/cv.SD.lasso[,i]
 SEtoSD.ridge[,i]<- cv.SE.ridge[,i]/cv.SD.ridge[,i]
 }
-
 write.matrix(SEtoSD.lasso1,file="setosd1_lasso.csv")
 write.matrix(SEtoSD.ridge1,file="setosd1_ridge.csv")
 
@@ -116,16 +117,14 @@ Y.2<- function(Q,Np,N,Beta){
   rbinom(N,1,pr)
 }#This is to generate the outcome with decaying coefficients without correlation
 
-scenarios_sd<- expand.grid(q.sd=q.sd,qp.sd=qp.sd,n=n)
-
 
 #with decaying coefficients but without correlation
 cv.SE.lasso2<- matrix(0,ncol = nrow(scenarios_sd),nrow=4)
 cv.SD.lasso2<- matrix(0,ncol = nrow(scenarios_sd),nrow=4)
 cv.SE.ridge2<- matrix(0,ncol = nrow(scenarios_sd),nrow=4)
 cv.SD.ridge2<- matrix(0,ncol = nrow(scenarios_sd),nrow=4)
-SDtoSE.lasso2<- matrix(0,ncol= nrow(scenarios_sd),nrow=4)
-SDtoSE.ridge2<- matrix(0,ncol= nrow(scenarios_sd),nrow=4)
+SEtoSD.lasso2<- matrix(0,ncol= nrow(scenarios_sd),nrow=4)
+SEtoSD.ridge2<- matrix(0,ncol= nrow(scenarios_sd),nrow=4)
 mse.min_lasso2<- matrix(0,nrow=4,ncol=n_rep)
 mse.min_ridge2<- matrix(0,nrow=4,ncol=n_rep)
 se.1se_lasso2<- matrix(0,nrow=4,ncol=n_rep)
@@ -159,12 +158,11 @@ for (i in 1:nrow(scenarios_sd)){
   cv.SE.ridge2[,i]<- rowMeans(se.1se_ridge2)
   cv.SD.lasso2[,i]<- rowSds(mse.min_lasso2)
   cv.SD.ridge2[,i]<- rowSds(mse.min_ridge2)
-  SDtoSE.lasso2[,i]<- cv.SD.lasso2[,i]/cv.SE.lasso2[,i]
-  SDtoSE.ridge2[,i]<- cv.SD.ridge2[,i]/cv.SE.ridge2[,i]
+  SEtoSD.lasso2[,i]<- cv.SE.lasso2[,i]/cv.SD.lasso2[,i]
+  SEtoSD.ridge2[,i]<- cv.SE.ridge2[,i]/cv.SD.ridge2[,i]
 }
-SDtoSE.lasso2
-SDtoSE.ridge2
-
+write.matrix(SEtoSD.lasso2,file="setosd2_lasso.csv")
+write.matrix(SEtoSD.ridge2,file="setosd2_ridge.csv")
 
 ############################################
 #constant coefficient and compound symmetry correlation structure
@@ -179,24 +177,19 @@ Y.5<- function(Q,X,N,Beta){
 }#This is to generate the outcome with constant coefficients and compound symmetry correlation structure
 
 
-##generate scenarios for variables with correlation
-scenarios_sd2<- expand.grid(q.sd=q.sd,qp.sd=qp.sd,n=n,rho=rho)
-
-
-
 #with constant coefficients and compound simmetry covariance structure
 cv.SE.lasso5<- matrix(0,ncol = nrow(scenarios_sd2),nrow=4)
 cv.SD.lasso5<- matrix(0,ncol = nrow(scenarios_sd2),nrow=4)
 cv.SE.ridge5<- matrix(0,ncol = nrow(scenarios_sd2),nrow=4)
 cv.SD.ridge5<- matrix(0,ncol = nrow(scenarios_sd2),nrow=4)
-SDtoSE.lasso5<- matrix(0,ncol= nrow(scenarios_sd2),nrow=4)
-SDtoSE.ridge5<- matrix(0,ncol= nrow(scenarios_sd2),nrow=4)
+SEtoSD.lasso5<- matrix(0,ncol= nrow(scenarios_sd2),nrow=4)
+SEtoSD.ridge5<- matrix(0,ncol= nrow(scenarios_sd2),nrow=4)
 mse.min_lasso5<- matrix(0,nrow=4,ncol=n_rep)
 mse.min_ridge5<- matrix(0,nrow=4,ncol=n_rep)
 se.1se_lasso5<- matrix(0,nrow=4,ncol=n_rep)
 se.1se_ridge5<- matrix(0,nrow=4,ncol=n_rep)
 
-for (i in 66:67){
+for (i in 1:nrow(scenario_sd2)){
   q0<- scenarios_sd2[i,1]
   p0<- q0/scenarios_sd2[i,2]
   n0<- scenarios_sd2[i,3]
@@ -248,13 +241,11 @@ for(j in 1:n_rep){
   cv.SE.ridge5[,i]<- rowMeans(se.1se_ridge5)
   cv.SD.lasso5[,i]<- rowSds(mse.min_lasso5)
   cv.SD.ridge5[,i]<- rowSds(mse.min_ridge5)
-  SDtoSE.lasso5[,i]<- cv.SD.lasso5[,i]/cv.SE.lasso5[,i]
-  SDtoSE.ridge5[,i]<- cv.SD.ridge5[,i]/cv.SE.ridge5[,i]
+  SDtoSE.lasso5[,i]<- cv.SE.lasso5[,i]/cv.SD.lasso5[,i]
+  SDtoSE.ridge5[,i]<- cv.SE.ridge5[,i]/cv.SD.ridge5[,i]
 }
-SDtoSE.lasso5
-SDtoSE.ridge5
-write.matrix(SDtoSE.lasso5,file="sd3.12_lasso.csv")
-write.matrix(SDtoSE.ridge5,file="sd3.12_ridge.csv")
+write.matrix(SEtoSD.lasso5,file="setosd3_lasso.csv")
+write.matrix(SEtoSD.ridge5,file="setosd3_ridge.csv")
 
 
 #####################################################
@@ -271,19 +262,14 @@ Y.6<- function(Q,Np,N,RHO,Beta){
   rbinom(N,1,pr)
 }#This is to generate the outcome with decaying coefficients and compound symmetry correlation
 
-q.sd<- c(10,100,200) #the value of q for standard deviation test
-qp.sd<- c(0.1,0.5,10/11) #the ratio between the number of non-zero coefficients to total number of coefficients
-##generate scenarios for variables with correlation
-scenarios_sd2<- expand.grid(q.sd=q.sd,qp.sd=qp.sd,n=n,rho=rho)
-
 
 #with decaying coefficients and compound simmetry covariance structure
 cv.SE.lasso6<- matrix(0,ncol = nrow(scenarios_sd2),nrow=4)
 cv.SD.lasso6<- matrix(0,ncol = nrow(scenarios_sd2),nrow=4)
 cv.SE.ridge6<- matrix(0,ncol = nrow(scenarios_sd2),nrow=4)
 cv.SD.ridge6<- matrix(0,ncol = nrow(scenarios_sd2),nrow=4)
-SDtoSE.lasso6<- matrix(0,ncol= nrow(scenarios_sd2),nrow=4)
-SDtoSE.ridge6<- matrix(0,ncol= nrow(scenarios_sd2),nrow=4)
+SEtoSD.lasso6<- matrix(0,ncol= nrow(scenarios_sd2),nrow=4)
+SEtoSD.ridge6<- matrix(0,ncol= nrow(scenarios_sd2),nrow=4)
 mse.min_lasso6<- matrix(0,nrow=4,ncol=n_rep)
 mse.min_ridge6<- matrix(0,nrow=4,ncol=n_rep)
 se.1se_lasso6<- matrix(0,nrow=4,ncol=n_rep)
@@ -344,10 +330,8 @@ for (i in 1:nrow(scenarios_sd2)){
   cv.SE.ridge6[,i]<- rowMeans(se.1se_ridge6)
   cv.SD.lasso6[,i]<- rowSds(mse.min_lasso6)
   cv.SD.ridge6[,i]<- rowSds(mse.min_ridge6)
-  SDtoSE.lasso6[,i]<- cv.SD.lasso6[,i]/cv.SE.lasso6[,i]
-  SDtoSE.ridge6[,i]<- cv.SD.ridge6[,i]/cv.SE.ridge6[,i]
+  SEtoSD.lasso6[,i]<- cv.SE.lasso6[,i]/cv.SD.lasso6[,i]
+  SEtoSD.ridge6[,i]<- cv.SE.ridge6[,i]/cv.SD.ridge6[,i]
 }
-SDtoSE.lasso6
-SDtoSE.ridge6
-write.matrix(SDtoSE.lasso6,file="sd4.3_lasso.csv")
-write.matrix(SDtoSE.ridge6,file="sd4.3_ridge.csv")
+write.matrix(SEtoSD.lasso6,file="setosd4_lasso.csv")
+write.matrix(SEtoSD.ridge6,file="setosd4_ridge.csv")
