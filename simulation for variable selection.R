@@ -1,4 +1,4 @@
-
+## This R program is used to estimate the performance of 1 se rule on estimating variable selection.
 library(boot)
 library(glmnet)
 library(matrixStats)
@@ -6,14 +6,16 @@ library(MixMatrix)
 library(foreach)
 library (ModelMetrics)
 library(doParallel)
-registerDoParallel(cores=6)
+registerDoParallel(cores= )
 ##1. Generate data set
 #parameters settings
 n_rep<- 1000
 K<- c(3,5,10,20)
 n<-c(100,1000) #n is the sample size
-rho<- c(0.1,0.7,0.9) #correlation between
-beta.value<- c(0.1,0.5,1.0,2.0,3.0) #constant beta value
+rho<- c(0.1,0.9) #correlation between
+##Variable selection (only for lasso)
+q.vs<- c(10,100,200)    #This is the vector of potential value of q for variable selection
+qp.vs<- c(0.1,0.5,10/11) #In this section, qp.vs refers to the difference between q and p which is equal to p - q.
 
 X.1<- function(Np,N){
   matrix(rnorm(N*Np),nrow=N,ncol=Np)
@@ -25,9 +27,7 @@ Y.1<- function(Q,X,N,Beta){
   rbinom(N,1,pr)
 }#This is to generate the outcome with constant coefficients
 
-##Variable selection (only for lasso)
-q.vs<- c(10,100,1000)    #This is the vector of potential value of q for variable selection
-qp.vs<- c(0.1,0.5,10/11) #In this section, qp.vs refers to the difference between q and p which is equal to p - q.
+
 scenarios_vs<- expand.grid(q.vs=q.vs,qp.vs=qp.vs,n=n,beta.value=beta.value)
 fit<- list()
 a<- list()
