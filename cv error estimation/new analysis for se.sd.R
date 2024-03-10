@@ -2,26 +2,13 @@
 #load data
 library(ggplot2)
 library(gridExtra)
-install.packages("cowplot")
 library(cowplot)
-setwd("C:/Users/joeyt/Desktop/research_project/HPC/data_to_HPC")
-load(file = "setosd_data.RData")
-all<- setosd_data[1:3920,]
-#split dataset into 4 groups respectively
-con<- all[all$coef==0,]
-dec<- all[all$coef==1,]
-con_noco<- con[con$rho==0,]
-con_csco<- con[!con$rho==0,]
-dec_noco<- dec[dec$rho==0,]
-dec_csco<- dec[!dec$rho==0,]
-con_noco<- con_noco[con_noco$n %in% c(100,1000),]
-con_noco<- con_noco[con_noco$q %in% c(10,100,200),]
-dec_noco<- dec_noco[dec_noco$n %in% c(100,1000),]
-dec_noco<- dec_noco[dec_noco$q %in% c(10,100,200),]
-con_csco<- con_csco[con_csco$n %in% c(100,1000),]
-con_csco<- con_csco[con_csco$q %in% c(10,100,200),]
-dec_csco<- dec_csco[dec_csco$n %in% c(100,1000),]
-dec_csco<- dec_csco[dec_csco$q %in% c(10,100,200),]
+setwd("")
+
+con_noco<- readRDS(file = "con_noco.RDS")
+dec_noco<- readRDS(file = "dec_noco.RDS")
+con_csco<- readRDS(file = "con_csco.RDS")
+dec_csco<- readRDS(file = "dec_csco.RDS")
 
 all_se_sd<- rbind(con_csco,con_noco,dec_noco,dec_csco)
 plot(all_se_sd[,7], ylab = "SE(CV)/SD(CV)",xlab = "")
